@@ -10,9 +10,4 @@ public class CommonController {
     public String index(){
         return "Welcom to supplier";
     }
-    
-    @RequestMapping("/login")
-    public String login(){
-        return null;
-    }
 }
