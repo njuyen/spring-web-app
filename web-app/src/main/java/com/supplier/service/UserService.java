@@ -30,7 +30,7 @@ public class UserService {
     }
 
     public Long create(String username, String password) {
-        return userRepository.create(new User(null, username, password, User.Role.USER));
+        return userRepository.create(username, password);
     }
 
 }

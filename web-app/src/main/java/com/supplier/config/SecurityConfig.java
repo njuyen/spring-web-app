@@ -16,7 +16,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
             .antMatchers("/","/users/*").permitAll()
             .anyRequest().authenticated()
             .and().logout().logoutSuccessUrl("/logout")
-            .and().csrf();
+            .and().csrf().disable();
     }
 
     @Autowired

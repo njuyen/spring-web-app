@@ -12,7 +12,7 @@ public class UserCreateDto {
 
     @NotBlank
     @UserUnique
-    private String name;
+    private String username;
 
     @NotBlank
     @Pattern(regexp = "")
@@ -20,12 +20,12 @@ public class UserCreateDto {
 
     private String confirmPassword;
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUserame(String name) {
+        this.username = name;
     }
 
     public String getPassword() {

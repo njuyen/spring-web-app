@@ -4,16 +4,16 @@ import org.hibernate.validator.constraints.NotBlank;
 
 public class UserLoginDto {
     @NotBlank
-    private String name;
+    private String username;
     
     @NotBlank
     private String password;
     
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String name) {
+        this.username = name;
     }
     public String getPassword() {
         return password;
