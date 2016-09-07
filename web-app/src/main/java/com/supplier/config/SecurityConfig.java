@@ -4,18 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.supplier.config.auth.AuthConfigAdapter;
 import com.supplier.config.auth.TokenBasedAuthentication;
 import com.supplier.config.auth.token.TokenProvider;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
     private static final String SECRET_SIGN = "4b95309b6df87248328e1c3791e47793";
     private static final int EXPIRE_IN = 3600000;
@@ -36,6 +40,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
         return new TokenBasedAuthentication(userDetailsService, tokenProvider());
     }
     
+    @Bean
+    public  AuthConfigAdapter authConfigAdapter() {
+        return new AuthConfigAdapter(userDetailsService, tokenProvider());
+    }
+    
     @Override
     public void configure(WebSecurity web) throws Exception {
         // Ignore front-end resources
@@ -48,11 +57,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http.sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().apply(authConfigAdapter())
+            .and().csrf().disable()
+            .headers().frameOptions().disable()
+            .and().authorizeRequests()
             .antMatchers("/","/users/*").permitAll()
             .anyRequest().authenticated()
-            .and().logout().logoutSuccessUrl("/logout")
-            .and().csrf().disable();
+            .and().logout().logoutSuccessUrl("/logout");
     }
 
     @Autowired
