@@ -1,71 +1,50 @@
 package com.supplier.config.auth;
 
-import java.io.IOException;
-
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.GenericFilterBean;
 
-public class TokenBasedAuthentication extends AbstractAuthenticationProcessingFilter {
-    private static final Logger LOG = LoggerFactory.getLogger(TokenBasedAuthentication.class);
-    public static final String HEADER_SECURITY_TOKEN = "X-Auth-Token"; 
-    
-    public TokenBasedAuthentication(String defaultFilterUrl) {
-        super(defaultFilterUrl);
-        super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(defaultFilterUrl));
-        setAuthenticationManager(new TokenAuthenticationManager());
-//        setAuthenticationSuccessHandler(new TokenSimpleUrlAuthenticationSuccessHandler());
-    } 
- 
- 
-    /**
-     * Attempt to authenticate request - basically just pass over to another method to authenticate request headers 
-     */
-    @Override 
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) 
-            throws AuthenticationException, IOException, ServletException {
-        String token = request.getHeader(HEADER_SECURITY_TOKEN);
-        LOG.info("X-Auth-Token = " + token);
-        AbstractAuthenticationToken userAuthenticationToken = authUserByToken(token);
-        if ( userAuthenticationToken == null) 
-            throw new AuthenticationServiceException(String.format("Authentication failed: %s", "Bad Token"));
-        return userAuthenticationToken;
+import com.supplier.config.auth.token.TokenProvider;
+import com.supplier.exception.WebAppException;
+
+public class TokenBasedAuthentication extends GenericFilterBean {
+    public static final String HEADER_SECURITY_TOKEN = "x-auth-token";
+
+    private final UserDetailsService userDetailsService;
+
+    private final TokenProvider tokenProvider;
+
+    public TokenBasedAuthentication(UserDetailsService detailsService, TokenProvider tokenProvider) {
+        this.userDetailsService = detailsService;
+        this.tokenProvider = tokenProvider;
     }
- 
-    /**
-     * authenticate the user based on token
-     * @return
-     */
-    private AbstractAuthenticationToken authUserByToken(String token) {
-        if(token == null) {
-            return null;
-        }
-        AbstractAuthenticationToken authToken = null;
-        try {
-            return authToken;
-        } catch (Exception e) {
-            LOG.error("Authenticate user by token error: ", e);
-        }
-        return authToken;
-    }
- 
- 
+
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res,
-            FilterChain chain) throws IOException, ServletException {
-        super.doFilter(req, res, chain);
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) {
+        try {
+            HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+            String authToken = httpServletRequest.getHeader(HEADER_SECURITY_TOKEN);
+            if (StringUtils.hasText(authToken)) {
+                String username = tokenProvider.getUsernameFromToken(authToken);
+                UserDetails user = userDetailsService.loadUserByUsername(username);
+                if (tokenProvider.validateToken(authToken, user)) {
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user,
+                            user.getPassword(), user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(token);
+                }
+            }
+            filterChain.doFilter(servletRequest, servletResponse);
+        } catch (Exception ex) {
+            throw new WebAppException(ex);
+        }
     }
 
 }

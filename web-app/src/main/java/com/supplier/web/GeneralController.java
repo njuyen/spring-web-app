@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class CommonController {
+public class GeneralController {
     
     @RequestMapping("/")
     public String index(){

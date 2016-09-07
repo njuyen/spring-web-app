@@ -11,4 +11,12 @@ public class WebAppException extends RuntimeException {
     public WebAppException(String message) {
         super(message);
     }
+
+    public WebAppException(Throwable t) {
+        super(t);
+    }
+
+    public WebAppException(String message, Throwable t) {
+        super(message, t);
+    }
 }
