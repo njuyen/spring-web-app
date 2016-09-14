@@ -1,4 +1,4 @@
-package com.blogger.web;
+package com.blogger.web.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

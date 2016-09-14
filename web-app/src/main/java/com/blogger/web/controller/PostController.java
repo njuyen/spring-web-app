@@ -1,4 +1,4 @@
-package com.blogger.web;
+package com.blogger.web.controller;
 
 import java.util.List;
 

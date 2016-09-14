@@ -1,4 +1,4 @@
-package com.blogger.web;
+package com.blogger.web.controller;
 
 import org.springframework.boot.autoconfigure.web.ErrorController;
 import org.springframework.web.bind.annotation.ControllerAdvice;
